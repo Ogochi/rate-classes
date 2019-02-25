@@ -10,7 +10,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import pl.ogochi.rate_classes_server.model.RoleName;
 import pl.ogochi.rate_classes_server.model.User;
-import pl.ogochi.rate_classes_server.payload.LoginRegisterRequest;
+import pl.ogochi.rate_classes_server.dao.LoginRegisterRequest;
 import pl.ogochi.rate_classes_server.repository.UserRepository;
 import pl.ogochi.rate_classes_server.security.JwtTokenProvider;
 import pl.ogochi.rate_classes_server.util.NewUserValidator;
