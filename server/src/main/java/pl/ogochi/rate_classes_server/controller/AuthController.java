@@ -1,20 +1,25 @@
 package pl.ogochi.rate_classes_server.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+import pl.ogochi.rate_classes_server.dao.LoginRegisterRequest;
+import pl.ogochi.rate_classes_server.exception.UserValidationException;
 import pl.ogochi.rate_classes_server.model.RoleName;
 import pl.ogochi.rate_classes_server.model.User;
-import pl.ogochi.rate_classes_server.dao.LoginRegisterRequest;
+import pl.ogochi.rate_classes_server.model.VerificationToken;
 import pl.ogochi.rate_classes_server.repository.UserRepository;
+import pl.ogochi.rate_classes_server.repository.VerificationTokenRepository;
 import pl.ogochi.rate_classes_server.security.JwtTokenProvider;
+import pl.ogochi.rate_classes_server.security.SendVerificationTokenEvent;
 import pl.ogochi.rate_classes_server.util.NewUserValidator;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.Arrays;
 
@@ -30,6 +35,10 @@ public class AuthController {
     PasswordEncoder passwordEncoder;
     @Autowired
     UserRepository userRepository;
+    @Autowired
+    VerificationTokenRepository verificationTokenRepository;
+    @Autowired
+    ApplicationEventPublisher applicationEventPublisher;
 
     @PostMapping("/login")
     public String authenticate(@Valid @RequestBody LoginRegisterRequest loginRequest) {
@@ -49,22 +58,24 @@ public class AuthController {
         User user = new User(registerRequest.getEmail(), registerRequest.getPassword(), false,
                 Arrays.asList(RoleName.ROLE_USER.name()));
 
-        NewUserValidator validator = new NewUserValidator(user);
+        NewUserValidator validator = new NewUserValidator(userRepository, user);
 
         if (!validator.isEmailUnique() || !validator.isEmailValid() || !validator.isPasswordValid()) {
-            validationConflict();
+            throw new UserValidationException();
         }
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-
         userRepository.save(user);
+
+        VerificationToken verificationToken = verificationTokenRepository.createNewToken(user);
+        applicationEventPublisher.publishEvent(new SendVerificationTokenEvent(
+                user,
+                verificationToken.getToken()
+        ));
     }
 
-    private User createNewUser(LoginRegisterRequest request) {
-        return new User(request.getEmail(), passwordEncoder.encode(request.getPassword()), false,
-                Arrays.asList(RoleName.ROLE_USER.name()));
-    }
+    @GetMapping("/verify")
+    public void verifyEmail(@RequestParam String token) {
 
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
-    private void validationConflict() {}
+    }
 }
