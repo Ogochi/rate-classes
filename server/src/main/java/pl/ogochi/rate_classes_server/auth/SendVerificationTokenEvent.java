@@ -1,4 +1,4 @@
-package pl.ogochi.rate_classes_server.security;
+package pl.ogochi.rate_classes_server.auth;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
