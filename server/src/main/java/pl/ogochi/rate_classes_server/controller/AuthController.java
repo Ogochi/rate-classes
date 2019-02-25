@@ -10,6 +10,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import pl.ogochi.rate_classes_server.dao.ChangePasswordRequest;
 import pl.ogochi.rate_classes_server.dao.LoginRegisterRequest;
 import pl.ogochi.rate_classes_server.exception.UserAlreadyVerifiedException;
 import pl.ogochi.rate_classes_server.exception.UserNotFoundException;
@@ -22,8 +23,10 @@ import pl.ogochi.rate_classes_server.repository.UserRepository;
 import pl.ogochi.rate_classes_server.repository.VerificationTokenRepository;
 import pl.ogochi.rate_classes_server.security.JwtTokenProvider;
 import pl.ogochi.rate_classes_server.security.SendVerificationTokenEvent;
+import pl.ogochi.rate_classes_server.security.UserPrincipal;
 import pl.ogochi.rate_classes_server.util.NewUserValidator;
 
+import javax.annotation.security.RolesAllowed;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
@@ -65,6 +68,20 @@ public class AuthController {
         return "Bearer " + tokenProvider.generateToken(authentication);
     }
 
+    @PostMapping("/changePassword")
+    @RolesAllowed("ROLE_USER")
+    @Transactional
+    public void changePassword(@Valid @RequestBody ChangePasswordRequest changePasswordRequest) {
+        UserPrincipal userPrincipal = (UserPrincipal)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (!userPrincipal.getPassword().equals(passwordEncoder.encode(changePasswordRequest.getCurrentPassword()))) {
+            throw new UserValidationException();
+        }
+
+        User user = userRepository.getUserByEmail(userPrincipal.getEmail());
+        user.setPassword(passwordEncoder.encode(changePasswordRequest.getNewPassword()));
+        userRepository.save(user);
+    }
+
     @PostMapping("/register")
     @Transactional
     public void register(@Valid @RequestBody LoginRegisterRequest registerRequest) {
@@ -102,9 +119,8 @@ public class AuthController {
     }
 
     @PostMapping("/resendVerification")
-    public void resendVerificationEmail(@RequestParam String email, HttpServletRequest request) {
-        System.out.println(request.getRemoteAddr());
-
+    @Transactional
+    public void resendVerificationEmail(@RequestParam String email) {
         Optional<User> user = userRepository.findUserByEmail(email);
         if (!user.isPresent()) {
             throw new UserNotFoundException();
