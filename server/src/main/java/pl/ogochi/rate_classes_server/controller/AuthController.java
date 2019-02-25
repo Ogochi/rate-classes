@@ -7,9 +7,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import pl.ogochi.rate_classes_server.dao.LoginRegisterRequest;
 import pl.ogochi.rate_classes_server.exception.UserValidationException;
+import pl.ogochi.rate_classes_server.exception.VerificationTokenNotFound;
 import pl.ogochi.rate_classes_server.model.RoleName;
 import pl.ogochi.rate_classes_server.model.User;
 import pl.ogochi.rate_classes_server.model.VerificationToken;
@@ -19,9 +21,9 @@ import pl.ogochi.rate_classes_server.security.JwtTokenProvider;
 import pl.ogochi.rate_classes_server.security.SendVerificationTokenEvent;
 import pl.ogochi.rate_classes_server.util.NewUserValidator;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.Arrays;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -41,6 +43,7 @@ public class AuthController {
     ApplicationEventPublisher applicationEventPublisher;
 
     @PostMapping("/login")
+    @Transactional
     public String authenticate(@Valid @RequestBody LoginRegisterRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -54,6 +57,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
+    @Transactional
     public void register(@Valid @RequestBody LoginRegisterRequest registerRequest) {
         User user = new User(registerRequest.getEmail(), registerRequest.getPassword(), false,
                 Arrays.asList(RoleName.ROLE_USER.name()));
@@ -75,7 +79,18 @@ public class AuthController {
     }
 
     @GetMapping("/verify")
+    @Transactional
     public void verifyEmail(@RequestParam String token) {
+        Optional<VerificationToken> verificationToken = verificationTokenRepository.findById(token);
 
+        if (!verificationToken.isPresent()) {
+            throw new VerificationTokenNotFound();
+        }
+
+        User user = verificationToken.get().getUser();
+        user.setEnabled(true);
+
+        verificationTokenRepository.delete(verificationToken.get());
+        userRepository.save(user);
     }
 }
