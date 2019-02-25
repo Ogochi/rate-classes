@@ -10,6 +10,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import pl.ogochi.rate_classes_server.auth.ResetPasswordEvent;
 import pl.ogochi.rate_classes_server.dao.ChangePasswordRequest;
 import pl.ogochi.rate_classes_server.dao.LoginRegisterRequest;
 import pl.ogochi.rate_classes_server.exception.UserAlreadyVerifiedException;
@@ -22,12 +23,11 @@ import pl.ogochi.rate_classes_server.model.VerificationToken;
 import pl.ogochi.rate_classes_server.repository.UserRepository;
 import pl.ogochi.rate_classes_server.repository.VerificationTokenRepository;
 import pl.ogochi.rate_classes_server.security.JwtTokenProvider;
-import pl.ogochi.rate_classes_server.security.SendVerificationTokenEvent;
+import pl.ogochi.rate_classes_server.auth.SendVerificationTokenEvent;
 import pl.ogochi.rate_classes_server.security.UserPrincipal;
 import pl.ogochi.rate_classes_server.util.NewUserValidator;
 
 import javax.annotation.security.RolesAllowed;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.IOException;
@@ -80,6 +80,16 @@ public class AuthController {
         User user = userRepository.getUserByEmail(userPrincipal.getEmail());
         user.setPassword(passwordEncoder.encode(changePasswordRequest.getNewPassword()));
         userRepository.save(user);
+    }
+
+    @PostMapping("/resetPassword")
+    public void resetPassword(@RequestParam String email) {
+        Optional<User> user = userRepository.findUserByEmail(email);
+        if (!user.isPresent()) {
+            throw new UserNotFoundException();
+        }
+
+        applicationEventPublisher.publishEvent(new ResetPasswordEvent(user.get().getEmail()));
     }
 
     @PostMapping("/register")
