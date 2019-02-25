@@ -43,7 +43,7 @@ public class RegistrationListener {
     }
 
     private String createHtmlMessage(String token) {
-        return String.format("<h1>Dear %s user!</h1><br/>" +
+        return String.format("<h3>Dear <b>%s</b> user!</h3><br/>" +
                 "Verify your email address by clicking <a href='%s'>this link</a>.",
                 appName, appUrl + "/api/auth/verify?token=" + token);
     }
