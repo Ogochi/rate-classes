@@ -1,6 +1,7 @@
 package pl.ogochi.rate_classes_server.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -21,7 +22,9 @@ import pl.ogochi.rate_classes_server.security.JwtTokenProvider;
 import pl.ogochi.rate_classes_server.security.SendVerificationTokenEvent;
 import pl.ogochi.rate_classes_server.util.NewUserValidator;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -41,6 +44,9 @@ public class AuthController {
     VerificationTokenRepository verificationTokenRepository;
     @Autowired
     ApplicationEventPublisher applicationEventPublisher;
+
+    @Value("${spring.application.url}")
+    private String appUrl;
 
     @PostMapping("/login")
     @Transactional
@@ -80,7 +86,7 @@ public class AuthController {
 
     @GetMapping("/verify")
     @Transactional
-    public void verifyEmail(@RequestParam String token) {
+    public void verifyEmail(@RequestParam String token, HttpServletResponse response) throws IOException {
         Optional<VerificationToken> verificationToken = verificationTokenRepository.findById(token);
 
         if (!verificationToken.isPresent()) {
@@ -92,5 +98,7 @@ public class AuthController {
 
         verificationTokenRepository.delete(verificationToken.get());
         userRepository.save(user);
+
+        response.sendRedirect(appUrl);
     }
 }
