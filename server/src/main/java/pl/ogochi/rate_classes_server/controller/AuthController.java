@@ -11,8 +11,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import pl.ogochi.rate_classes_server.dao.LoginRegisterRequest;
+import pl.ogochi.rate_classes_server.exception.UserAlreadyVerifiedException;
+import pl.ogochi.rate_classes_server.exception.UserNotFoundException;
 import pl.ogochi.rate_classes_server.exception.UserValidationException;
-import pl.ogochi.rate_classes_server.exception.VerificationTokenNotFound;
+import pl.ogochi.rate_classes_server.exception.VerificationTokenNotFoundException;
 import pl.ogochi.rate_classes_server.model.RoleName;
 import pl.ogochi.rate_classes_server.model.User;
 import pl.ogochi.rate_classes_server.model.VerificationToken;
@@ -22,6 +24,7 @@ import pl.ogochi.rate_classes_server.security.JwtTokenProvider;
 import pl.ogochi.rate_classes_server.security.SendVerificationTokenEvent;
 import pl.ogochi.rate_classes_server.util.NewUserValidator;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.IOException;
@@ -77,11 +80,7 @@ public class AuthController {
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
 
-        VerificationToken verificationToken = verificationTokenRepository.createNewToken(user);
-        applicationEventPublisher.publishEvent(new SendVerificationTokenEvent(
-                user,
-                verificationToken.getToken()
-        ));
+        createAndSendVerificationTokenForUser(user);
     }
 
     @GetMapping("/verify")
@@ -90,7 +89,7 @@ public class AuthController {
         Optional<VerificationToken> verificationToken = verificationTokenRepository.findById(token);
 
         if (!verificationToken.isPresent()) {
-            throw new VerificationTokenNotFound();
+            throw new VerificationTokenNotFoundException();
         }
 
         User user = verificationToken.get().getUser();
@@ -100,5 +99,28 @@ public class AuthController {
         userRepository.save(user);
 
         response.sendRedirect(appUrl);
+    }
+
+    @PostMapping("/resendVerification")
+    public void resendVerificationEmail(@RequestParam String email, HttpServletRequest request) {
+        System.out.println(request.getRemoteAddr());
+
+        Optional<User> user = userRepository.findUserByEmail(email);
+        if (!user.isPresent()) {
+            throw new UserNotFoundException();
+        } else if (user.get().isEnabled()) {
+            throw new UserAlreadyVerifiedException();
+        }
+
+        verificationTokenRepository.removeAllByUser_Email(email);
+        createAndSendVerificationTokenForUser(user.get());
+    }
+
+    private void createAndSendVerificationTokenForUser(User user) {
+        VerificationToken verificationToken = verificationTokenRepository.createNewToken(user);
+        applicationEventPublisher.publishEvent(new SendVerificationTokenEvent(
+                user,
+                verificationToken.getToken()
+        ));
     }
 }

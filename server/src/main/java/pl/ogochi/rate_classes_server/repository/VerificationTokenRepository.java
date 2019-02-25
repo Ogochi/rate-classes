@@ -7,6 +7,7 @@ import pl.ogochi.rate_classes_server.model.VerificationToken;
 import java.util.UUID;
 
 public interface VerificationTokenRepository extends MongoRepository<VerificationToken, String> {
+    void removeAllByUser_Email(String userEmail);
 
     default VerificationToken createNewToken(User user) {
         String token = UUID.randomUUID().toString();
