@@ -1,5 +1,6 @@
 package pl.ogochi.rate_classes_server.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -14,6 +15,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import pl.ogochi.rate_classes_server.security.CustomUserDetails;
+import pl.ogochi.rate_classes_server.security.JwtAuthenticationEntryPoint;
 import pl.ogochi.rate_classes_server.security.JwtAuthenticationFilter;
 
 @Configuration
@@ -24,6 +26,9 @@ import pl.ogochi.rate_classes_server.security.JwtAuthenticationFilter;
         prePostEnabled = true
 )
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Autowired
+    public JwtAuthenticationEntryPoint authenticationEntryPoint;
 
     @Bean
     public UserDetailsService userDetailsService() {
@@ -53,6 +58,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                     .and()
                 .csrf()
                     .disable()
+                .exceptionHandling()
+                    .authenticationEntryPoint(authenticationEntryPoint)
+                    .and()
                 .sessionManagement()
                     .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                     .and()
