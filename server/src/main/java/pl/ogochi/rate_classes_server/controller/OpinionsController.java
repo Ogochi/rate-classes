@@ -2,6 +2,7 @@ package pl.ogochi.rate_classes_server.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import pl.ogochi.rate_classes_server.dto.AddClassRequest;
 import pl.ogochi.rate_classes_server.dto.AddLecturerRequest;
@@ -10,6 +11,7 @@ import pl.ogochi.rate_classes_server.dto.OpinionListResponse;
 import pl.ogochi.rate_classes_server.exception.ClassNotFoundException;
 import pl.ogochi.rate_classes_server.exception.LecturerNotFoundException;
 import pl.ogochi.rate_classes_server.exception.NotEnoughUserOpinionsException;
+import pl.ogochi.rate_classes_server.exception.OpinionNotFoundException;
 import pl.ogochi.rate_classes_server.model.Class;
 import pl.ogochi.rate_classes_server.model.Lecturer;
 import pl.ogochi.rate_classes_server.model.Opinion;
@@ -52,6 +54,7 @@ public class OpinionsController {
 
     @PostMapping("/addOpinion")
     @RolesAllowed("ROLE_USER")
+    @Transactional
     public void addOrUpdateOpinion(@Valid @RequestBody AddOpinionRequest request) {
         Optional<Lecturer> lecturer = lecturerRepository.findById(request.getLecturerName());
         if (!lecturer.isPresent()) {
@@ -70,9 +73,11 @@ public class OpinionsController {
                 .aClass(aClass.get())
                 .rating(request.getRating())
                 .text(request.getText())
-                .author(userRepository.getUserByEmail(userPrincipal.getEmail()))
+                .authorEmail(userPrincipal.getEmail())
                 .popularity(0)
                 .build();
+
+        opinionRepository.deleteByAClass_NameAndAuthorEmail(aClass.get().getName(), userPrincipal.getEmail());
         opinionRepository.save(opinion);
     }
 
@@ -84,13 +89,39 @@ public class OpinionsController {
             throw new ClassNotFoundException();
         }
 
-        UserPrincipal userPrincipal = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        User user = userRepository.getUserByEmail(userPrincipal.getEmail());
-
-        if (user.getLikedOpinions().size() < REQUIRED_OPINIONS_COUNT) {
+        User user = getCurrentUser();
+        if (opinionRepository.countByAuthorEmail(user.getEmail()) < REQUIRED_OPINIONS_COUNT) {
             throw new NotEnoughUserOpinionsException();
         }
 
-        return new OpinionListResponse(opinionRepository.findAllByAClass_Name(className), user.getEmail(), userRepository);
+        return new OpinionListResponse(opinionRepository.findAllByAClass_NameOrderByPopularityDesc(className),
+                user.getEmail(), userRepository);
+    }
+
+    @PostMapping("/switchOpinionLike")
+    @RolesAllowed("ROLE_USER")
+    @Transactional
+    public void switchOpinionLike(@RequestParam String opinionId) {
+        Optional<Opinion> opinion = opinionRepository.findById(opinionId);
+        if (!opinion.isPresent()) {
+            throw new OpinionNotFoundException();
+        }
+
+        User user = getCurrentUser();
+        if (user.getLikedOpinions().contains(opinion.get())) {
+            user.getLikedOpinions().remove(opinion.get());
+            opinion.get().decrPopularity();
+        } else {
+            user.getLikedOpinions().add(opinion.get());
+            opinion.get().incrPopularity();
+        }
+
+        userRepository.save(user);
+        opinionRepository.save(opinion.get());
+    }
+
+    private User getCurrentUser() {
+        UserPrincipal userPrincipal = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return userRepository.getUserByEmail(userPrincipal.getEmail());
     }
 }

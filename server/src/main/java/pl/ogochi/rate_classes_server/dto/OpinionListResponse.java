@@ -26,6 +26,7 @@ public class OpinionListResponse {
 
     @Data
     private class OpinionDTO {
+        private String id;
         private String lecturer;
         private String text;
         private int rating;
@@ -34,13 +35,14 @@ public class OpinionListResponse {
         private boolean isLikedByMe = false;
 
         OpinionDTO(Opinion opinion) {
+            this.id = opinion.getId();
             this.lecturer = opinion.getLecturer().getName();
             this.text = opinion.getText();
             this.rating = opinion.getRating();
             this.popularity = opinion.getPopularity();
 
             User user = userRepository.getUserByEmail(userEmail);
-            if (opinion.getAuthor().getEmail().equals(userEmail)) {
+            if (opinion.getAuthorEmail().equals(userEmail)) {
                 isAuthoredByMe = true;
             }
             if (user.getLikedOpinions().contains(opinion)) {

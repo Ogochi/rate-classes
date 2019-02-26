@@ -14,8 +14,7 @@ public class Opinion {
     @Id
     public String id;
 
-    @DBRef
-    User author;
+    String authorEmail;
     @DBRef
     Lecturer lecturer;
     @DBRef
@@ -25,4 +24,12 @@ public class Opinion {
     String text;
     Integer rating;
     Integer popularity;
+
+    public void incrPopularity() {
+        popularity++;
+    }
+
+    public void decrPopularity() {
+        popularity--;
+    }
 }
