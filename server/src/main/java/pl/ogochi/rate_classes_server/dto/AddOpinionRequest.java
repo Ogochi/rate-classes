@@ -1,4 +1,4 @@
-package pl.ogochi.rate_classes_server.dao;
+package pl.ogochi.rate_classes_server.dto;
 
 import lombok.Getter;
 
