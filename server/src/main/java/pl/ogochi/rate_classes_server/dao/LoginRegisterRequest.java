@@ -1,10 +1,10 @@
 package pl.ogochi.rate_classes_server.dao;
 
-import lombok.Data;
+import lombok.Getter;
 
 import javax.validation.constraints.NotBlank;
 
-@Data
+@Getter
 public class LoginRegisterRequest {
     @NotBlank
     String email;

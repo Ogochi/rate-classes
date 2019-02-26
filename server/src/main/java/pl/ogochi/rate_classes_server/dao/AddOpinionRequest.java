@@ -1,19 +1,23 @@
 package pl.ogochi.rate_classes_server.dao;
 
-import javax.validation.constraints.DecimalMax;
-import javax.validation.constraints.DecimalMin;
-import javax.validation.constraints.NotBlank;
+import lombok.Getter;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+
+@Getter
 public class AddOpinionRequest {
     @NotBlank
     String className;
     @NotBlank
     String lecturerName;
 
-    @NotBlank
-    @DecimalMin("1")
-    @DecimalMax("5")
-    String rating;
+    @NotNull
+    @Min(1)
+    @Max(5)
+    int rating;
 
     @NotBlank
     String text;
