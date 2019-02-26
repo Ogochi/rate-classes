@@ -20,7 +20,7 @@ class NewUserValidator {
 
     public boolean isEmailValid() {
         Matcher matcher = VALID_EMAIL_ADDRESS_REGEX.matcher(user.getEmail());
-        return matcher.find();
+        return matcher.find() && user.getEmail().length() <= 100;
     }
 
     public boolean isPasswordValid() {
