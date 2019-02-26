@@ -95,7 +95,7 @@ public class AuthController {
     @PostMapping("/register")
     @Transactional
     public void register(@Valid @RequestBody LoginRegisterRequest registerRequest) {
-        User user = new User(registerRequest.getEmail(), registerRequest.getPassword(), false,
+        User user = new User(registerRequest.getEmail(), registerRequest.getPassword(),
                 Arrays.asList(RoleName.ROLE_USER.name()));
 
         NewUserValidator validator = new NewUserValidator(userRepository, user);
