@@ -32,7 +32,7 @@ public class AuthEventsListener {
 
     @Value("${spring.application.name}")
     private String appName;
-    @Value("${spring.application.url}")
+    @Value("${app.redirect.url.default}")
     private String appUrl;
 
     @EventListener

@@ -1,6 +1,5 @@
 package pl.ogochi.rate_classes_server.model;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.data.annotation.Id;

@@ -12,13 +12,13 @@ import pl.ogochi.rate_classes_server.exception.ClassNotFoundException;
 import pl.ogochi.rate_classes_server.exception.LecturerNotFoundException;
 import pl.ogochi.rate_classes_server.exception.NotEnoughUserOpinionsException;
 import pl.ogochi.rate_classes_server.exception.OpinionNotFoundException;
-import pl.ogochi.rate_classes_server.model.UniveristyClass;
 import pl.ogochi.rate_classes_server.model.Lecturer;
 import pl.ogochi.rate_classes_server.model.Opinion;
+import pl.ogochi.rate_classes_server.model.UniveristyClass;
 import pl.ogochi.rate_classes_server.model.User;
-import pl.ogochi.rate_classes_server.repository.UniveristyClassRepository;
 import pl.ogochi.rate_classes_server.repository.LecturerRepository;
 import pl.ogochi.rate_classes_server.repository.OpinionRepository;
+import pl.ogochi.rate_classes_server.repository.UniveristyClassRepository;
 import pl.ogochi.rate_classes_server.repository.UserRepository;
 import pl.ogochi.rate_classes_server.security.UserPrincipal;
 

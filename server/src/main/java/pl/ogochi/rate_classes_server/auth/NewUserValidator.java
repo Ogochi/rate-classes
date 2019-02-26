@@ -1,4 +1,4 @@
-package pl.ogochi.rate_classes_server.util;
+package pl.ogochi.rate_classes_server.auth;
 
 import pl.ogochi.rate_classes_server.model.User;
 import pl.ogochi.rate_classes_server.repository.UserRepository;
@@ -19,7 +19,7 @@ public class NewUserValidator {
     }
 
     public boolean isEmailValid() {
-        Matcher matcher = VALID_EMAIL_ADDRESS_REGEX .matcher(user.getEmail());
+        Matcher matcher = VALID_EMAIL_ADDRESS_REGEX.matcher(user.getEmail());
         return matcher.find();
     }
 
