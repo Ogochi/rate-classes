@@ -8,7 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document
 @Data
 @AllArgsConstructor
-public class Class {
+public class UniveristyClass {
     @Id
     String name;
     String description;

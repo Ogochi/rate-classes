@@ -12,11 +12,11 @@ import pl.ogochi.rate_classes_server.exception.ClassNotFoundException;
 import pl.ogochi.rate_classes_server.exception.LecturerNotFoundException;
 import pl.ogochi.rate_classes_server.exception.NotEnoughUserOpinionsException;
 import pl.ogochi.rate_classes_server.exception.OpinionNotFoundException;
-import pl.ogochi.rate_classes_server.model.Class;
+import pl.ogochi.rate_classes_server.model.UniveristyClass;
 import pl.ogochi.rate_classes_server.model.Lecturer;
 import pl.ogochi.rate_classes_server.model.Opinion;
 import pl.ogochi.rate_classes_server.model.User;
-import pl.ogochi.rate_classes_server.repository.ClassRepository;
+import pl.ogochi.rate_classes_server.repository.UniveristyClassRepository;
 import pl.ogochi.rate_classes_server.repository.LecturerRepository;
 import pl.ogochi.rate_classes_server.repository.OpinionRepository;
 import pl.ogochi.rate_classes_server.repository.UserRepository;
@@ -32,7 +32,7 @@ import java.util.Optional;
 @CrossOrigin
 public class OpinionsController {
     @Autowired
-    ClassRepository classRepository;
+    UniveristyClassRepository univeristyClassRepository;
     @Autowired
     LecturerRepository lecturerRepository;
     @Autowired
@@ -45,7 +45,7 @@ public class OpinionsController {
     @PutMapping("/addClass")
     @RolesAllowed("ROLE_USER")
     public void addClass(@Valid @RequestBody AddClassRequest request) {
-        classRepository.save(new Class(request.getName(), request.getDescription()));
+        univeristyClassRepository.save(new UniveristyClass(request.getName(), request.getDescription()));
     }
 
     @PutMapping("/addLecturer")
@@ -63,7 +63,7 @@ public class OpinionsController {
             throw new LecturerNotFoundException();
         }
 
-        Optional<Class> aClass = classRepository.findById(request.getClassName());
+        Optional<UniveristyClass> aClass = univeristyClassRepository.findById(request.getClassName());
         if (!aClass.isPresent()) {
             throw new ClassNotFoundException();
         }
@@ -72,22 +72,22 @@ public class OpinionsController {
 
         Opinion opinion = Opinion.builder()
                 .lecturer(lecturer.get())
-                .aClass(aClass.get())
+                .univeristyClass(aClass.get())
                 .rating(request.getRating())
                 .text(request.getText())
                 .authorEmail(userPrincipal.getEmail())
                 .popularity(0)
                 .build();
 
-        opinionRepository.deleteByAClass_NameAndAuthorEmail(aClass.get().getName(), userPrincipal.getEmail());
+        opinionRepository.deleteByUniveristyClassNameAndAuthorEmail(aClass.get().getName(), userPrincipal.getEmail());
         opinionRepository.save(opinion);
     }
 
     @GetMapping
     @RolesAllowed("ROLE_USER")
     public OpinionListResponse getOpinions(@RequestParam String className) {
-        Optional<Class> aClass = classRepository.findById(className);
-        if (!aClass.isPresent()) {
+        Optional<UniveristyClass> univeristyClass = univeristyClassRepository.findById(className);
+        if (!univeristyClass.isPresent()) {
             throw new ClassNotFoundException();
         }
 
@@ -96,7 +96,7 @@ public class OpinionsController {
             throw new NotEnoughUserOpinionsException();
         }
 
-        return new OpinionListResponse(opinionRepository.findAllByAClass_NameOrderByPopularityDesc(className),
+        return new OpinionListResponse(opinionRepository.findAllByUniveristyClassNameOrderByPopularityDesc(className),
                 user.getEmail(), userRepository);
     }
 
@@ -123,8 +123,8 @@ public class OpinionsController {
     }
 
     @GetMapping("/classes")
-    public List<Class> getClasses() {
-        return classRepository.findAll();
+    public List<UniveristyClass> getClasses() {
+        return univeristyClassRepository.findAll();
     }
 
     @GetMapping("/lecturers")

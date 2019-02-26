@@ -19,7 +19,7 @@ public class Opinion {
     Lecturer lecturer;
     @DBRef
     @Indexed
-    Class aClass;
+    UniveristyClass univeristyClass;
 
     String text;
     Integer rating;
