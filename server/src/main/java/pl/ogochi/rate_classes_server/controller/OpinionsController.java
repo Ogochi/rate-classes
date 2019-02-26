@@ -8,16 +8,11 @@ import pl.ogochi.rate_classes_server.dto.AddClassRequest;
 import pl.ogochi.rate_classes_server.dto.AddLecturerRequest;
 import pl.ogochi.rate_classes_server.dto.AddOpinionRequest;
 import pl.ogochi.rate_classes_server.dto.OpinionListResponse;
-import pl.ogochi.rate_classes_server.exception.ClassNotFoundException;
-import pl.ogochi.rate_classes_server.exception.LecturerNotFoundException;
-import pl.ogochi.rate_classes_server.exception.NotEnoughUserOpinionsException;
-import pl.ogochi.rate_classes_server.exception.OpinionNotFoundException;
 import pl.ogochi.rate_classes_server.model.Lecturer;
-import pl.ogochi.rate_classes_server.model.Opinion;
 import pl.ogochi.rate_classes_server.model.UniveristyClass;
 import pl.ogochi.rate_classes_server.model.User;
+import pl.ogochi.rate_classes_server.opinion.OpinionManagementService;
 import pl.ogochi.rate_classes_server.repository.LecturerRepository;
-import pl.ogochi.rate_classes_server.repository.OpinionRepository;
 import pl.ogochi.rate_classes_server.repository.UniveristyClassRepository;
 import pl.ogochi.rate_classes_server.repository.UserRepository;
 import pl.ogochi.rate_classes_server.security.UserPrincipal;
@@ -25,7 +20,6 @@ import pl.ogochi.rate_classes_server.security.UserPrincipal;
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/opinions")
@@ -36,11 +30,9 @@ public class OpinionsController {
     @Autowired
     LecturerRepository lecturerRepository;
     @Autowired
-    OpinionRepository opinionRepository;
-    @Autowired
     UserRepository userRepository;
-
-    private final static int REQUIRED_OPINIONS_COUNT = 2;
+    @Autowired
+    OpinionManagementService opinionManagementService;
 
     @PutMapping("/addClass")
     @RolesAllowed("ROLE_USER")
@@ -58,68 +50,20 @@ public class OpinionsController {
     @RolesAllowed("ROLE_USER")
     @Transactional
     public void addOrUpdateOpinion(@Valid @RequestBody AddOpinionRequest request) {
-        Optional<Lecturer> lecturer = lecturerRepository.findById(request.getLecturerName());
-        if (!lecturer.isPresent()) {
-            throw new LecturerNotFoundException();
-        }
-
-        Optional<UniveristyClass> aClass = univeristyClassRepository.findById(request.getClassName());
-        if (!aClass.isPresent()) {
-            throw new ClassNotFoundException();
-        }
-
-        UserPrincipal userPrincipal = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        Opinion opinion = Opinion.builder()
-                .lecturer(lecturer.get())
-                .univeristyClass(aClass.get())
-                .rating(request.getRating())
-                .text(request.getText())
-                .authorEmail(userPrincipal.getEmail())
-                .popularity(0)
-                .build();
-
-        opinionRepository.deleteByUniveristyClassNameAndAuthorEmail(aClass.get().getName(), userPrincipal.getEmail());
-        opinionRepository.save(opinion);
+        opinionManagementService.createOrUpdateOpinion(request, getCurrentUser());
     }
 
     @GetMapping
     @RolesAllowed("ROLE_USER")
     public OpinionListResponse getOpinions(@RequestParam String className) {
-        Optional<UniveristyClass> univeristyClass = univeristyClassRepository.findById(className);
-        if (!univeristyClass.isPresent()) {
-            throw new ClassNotFoundException();
-        }
-
-        User user = getCurrentUser();
-        if (opinionRepository.countByAuthorEmail(user.getEmail()) < REQUIRED_OPINIONS_COUNT) {
-            throw new NotEnoughUserOpinionsException();
-        }
-
-        return new OpinionListResponse(opinionRepository.findAllByUniveristyClassNameOrderByPopularityDesc(className),
-                user.getEmail(), userRepository);
+        return opinionManagementService.getOpinionsListWithHiddenDetails(className, getCurrentUser());
     }
 
     @PostMapping("/switchOpinionLike")
     @RolesAllowed("ROLE_USER")
     @Transactional
     public void switchOpinionLike(@RequestParam String opinionId) {
-        Optional<Opinion> opinion = opinionRepository.findById(opinionId);
-        if (!opinion.isPresent()) {
-            throw new OpinionNotFoundException();
-        }
-
-        User user = getCurrentUser();
-        if (user.getLikedOpinions().contains(opinion.get())) {
-            user.getLikedOpinions().remove(opinion.get());
-            opinion.get().decrPopularity();
-        } else {
-            user.getLikedOpinions().add(opinion.get());
-            opinion.get().incrPopularity();
-        }
-
-        userRepository.save(user);
-        opinionRepository.save(opinion.get());
+        opinionManagementService.switchLikeForOpinion(opinionId, getCurrentUser());
     }
 
     @GetMapping("/classes")
