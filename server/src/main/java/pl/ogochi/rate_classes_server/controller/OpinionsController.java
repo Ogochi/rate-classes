@@ -28,6 +28,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/opinions")
+@CrossOrigin
 public class OpinionsController {
     @Autowired
     ClassRepository classRepository;
