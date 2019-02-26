@@ -1,5 +1,6 @@
 package pl.ogochi.rate_classes_server.auth;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -26,6 +27,7 @@ import java.util.Arrays;
 import java.util.Optional;
 
 @Service
+@Slf4j
 public class AuthManagementService {
 
     @Autowired
@@ -98,6 +100,7 @@ public class AuthManagementService {
         }
 
         applicationEventPublisher.publishEvent(new ResetPasswordEvent(user.get().getEmail()));
+        log.info("Sent reset user password request for user with email={}", user.get().getEmail());
     }
 
     public void changeUserPassword(ChangePasswordRequest changePasswordRequest) {
@@ -109,6 +112,7 @@ public class AuthManagementService {
         User user = userRepository.getUserByEmail(userPrincipal.getEmail());
         user.setPassword(passwordEncoder.encode(changePasswordRequest.getNewPassword()));
         userRepository.save(user);
+        log.info("Successfully changed password for user with email={}", userPrincipal.getEmail());
     }
 
     private void validateNewUser(User user) {

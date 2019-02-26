@@ -6,7 +6,7 @@ import org.springframework.context.ApplicationEvent;
 
 @Data
 @EqualsAndHashCode(callSuper=false)
-public class ResetPasswordEvent extends ApplicationEvent {
+class ResetPasswordEvent extends ApplicationEvent {
     private String email;
 
     public ResetPasswordEvent(String email) {

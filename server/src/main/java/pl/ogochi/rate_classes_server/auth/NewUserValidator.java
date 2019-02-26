@@ -6,7 +6,7 @@ import pl.ogochi.rate_classes_server.repository.UserRepository;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class NewUserValidator {
+class NewUserValidator {
     private UserRepository userRepository;
     private User user;
 

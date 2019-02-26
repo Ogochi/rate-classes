@@ -7,7 +7,7 @@ import pl.ogochi.rate_classes_server.model.User;
 
 @Data
 @EqualsAndHashCode(callSuper=false)
-public class SendVerificationTokenEvent extends ApplicationEvent {
+class SendVerificationTokenEvent extends ApplicationEvent {
     private User user;
     private String token;
 

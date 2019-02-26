@@ -19,7 +19,7 @@ import java.util.UUID;
 
 @Component
 @Slf4j
-public class AuthEventsListener {
+class AuthEventsListener {
     private static final String VERIFY_EMAIL_TOPIC = "Email verification";
     private static final String RESET_PASSWORD_EMAIL_TOPIC = "Password reset";
 
