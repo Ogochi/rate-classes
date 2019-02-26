@@ -24,6 +24,7 @@ import pl.ogochi.rate_classes_server.security.UserPrincipal;
 
 import javax.annotation.security.RolesAllowed;
 import javax.validation.Valid;
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -119,6 +120,16 @@ public class OpinionsController {
 
         userRepository.save(user);
         opinionRepository.save(opinion.get());
+    }
+
+    @GetMapping("/classes")
+    public List<Class> getClasses() {
+        return classRepository.findAll();
+    }
+
+    @GetMapping("/lecturers")
+    public List<Lecturer> getLecturers() {
+        return lecturerRepository.findAll();
     }
 
     private User getCurrentUser() {
