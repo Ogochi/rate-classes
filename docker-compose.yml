@@ -2,9 +2,8 @@ version: '3'
 services:
   mongo:
     image: mongo
-    restart: always
     volumes:
-      - /data/mongo
+      - mongo_data:/data/mongo
     ports:
       - 27017:27017
     environment:
@@ -21,3 +20,6 @@ services:
       ME_CONFIG_MONGODB_ADMINPASSWORD: admin1
     depends_on:
       - mongo
+
+volumes:
+  mongo_data:
