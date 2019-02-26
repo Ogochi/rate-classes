@@ -28,4 +28,6 @@ dependencies {
     runtimeOnly 'org.springframework.boot:spring-boot-devtools'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
+
+    testCompile "de.flapdoodle.embed:de.flapdoodle.embed.mongo"
 }
