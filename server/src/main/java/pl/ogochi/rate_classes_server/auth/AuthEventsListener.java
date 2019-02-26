@@ -21,6 +21,7 @@ import java.util.UUID;
 @Slf4j
 public class AuthEventsListener {
     private static final String VERIFY_EMAIL_TOPIC = "Email verification";
+    private static final String RESET_PASSWORD_EMAIL_TOPIC = "Password reset";
 
     @Autowired
     public JavaMailSender emailSender;
@@ -37,7 +38,7 @@ public class AuthEventsListener {
     @EventListener
     public void onApplicationEvent(SendVerificationTokenEvent event) {
         try {
-            sendEmail(event.getUser().getEmail(), getMessageForVerification(event.getToken()));
+            sendEmail(event.getUser().getEmail(), getMessageForVerification(event.getToken()), VERIFY_EMAIL_TOPIC);
         } catch (MessagingException e) {
             log.error("Error during email message creation with stack trace={}", e.getMessage());
         }
@@ -46,7 +47,7 @@ public class AuthEventsListener {
     @EventListener
     @Transactional
     public void onApplicationEvent(ResetPasswordEvent event) {
-        String newPassword = UUID.randomUUID().toString().substring(0, 9);
+        String newPassword = UUID.randomUUID().toString().substring(0, 8);
 
         Optional<User> maybeUser = userRepository.findUserByEmail(event.getEmail());
         if (!maybeUser.isPresent()) {
@@ -59,28 +60,29 @@ public class AuthEventsListener {
         userRepository.save(user);
 
         try {
-            sendEmail(event.getEmail(), getMessageForPasswordReset(newPassword));
+            sendEmail(event.getEmail(), getMessageForPasswordReset(newPassword), RESET_PASSWORD_EMAIL_TOPIC);
         } catch (MessagingException e) {
             log.error("Error during email message creation with stack trace={}", e.getMessage());
         }
 
     }
 
-    private String getMessageForPasswordReset(String newPassword) {
-        return String.format("<h3>Dear <b>%s</b> user!</h3><br/>" +
-                "We have reset your current password. Please login as soon as possible using this new password: %s",
-                appName, newPassword);
-    }
-
-    private void sendEmail(String email, String messageText) throws MessagingException {
+    private void sendEmail(String email, String messageText, String subject) throws MessagingException {
         MimeMessage message = emailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, false, "utf-8");
 
         helper.setText(messageText,true);
         helper.setTo(email);
-        helper.setSubject(appName + " - " + VERIFY_EMAIL_TOPIC);
+        helper.setSubject(appName + " - " + subject);
 
         emailSender.send(message);
+    }
+
+    private String getMessageForPasswordReset(String newPassword) {
+        return String.format("<h3>Dear <b>%s</b> user!</h3><br/>" +
+                        "We have reset your current password. Please log in as soon as possible and change password.<br/> +" +
+                        "Password: <b>%s</b>",
+                appName, newPassword);
     }
 
     private String getMessageForVerification(String token) {

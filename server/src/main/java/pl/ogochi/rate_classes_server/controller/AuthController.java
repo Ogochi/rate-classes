@@ -73,7 +73,7 @@ public class AuthController {
     @Transactional
     public void changePassword(@Valid @RequestBody ChangePasswordRequest changePasswordRequest) {
         UserPrincipal userPrincipal = (UserPrincipal)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (!userPrincipal.getPassword().equals(passwordEncoder.encode(changePasswordRequest.getCurrentPassword()))) {
+        if (!passwordEncoder.matches(changePasswordRequest.getCurrentPassword(), userPrincipal.getPassword())) {
             throw new UserValidationException();
         }
 
