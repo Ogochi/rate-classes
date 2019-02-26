@@ -1,6 +1,5 @@
 package pl.ogochi.rate_classes_server.util;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import pl.ogochi.rate_classes_server.model.User;
 import pl.ogochi.rate_classes_server.repository.UserRepository;
 

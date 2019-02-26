@@ -11,6 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import pl.ogochi.rate_classes_server.auth.ResetPasswordEvent;
+import pl.ogochi.rate_classes_server.auth.SendVerificationTokenEvent;
 import pl.ogochi.rate_classes_server.dao.ChangePasswordRequest;
 import pl.ogochi.rate_classes_server.dao.LoginRegisterRequest;
 import pl.ogochi.rate_classes_server.exception.UserAlreadyVerifiedException;
@@ -23,7 +24,6 @@ import pl.ogochi.rate_classes_server.model.VerificationToken;
 import pl.ogochi.rate_classes_server.repository.UserRepository;
 import pl.ogochi.rate_classes_server.repository.VerificationTokenRepository;
 import pl.ogochi.rate_classes_server.security.JwtTokenProvider;
-import pl.ogochi.rate_classes_server.auth.SendVerificationTokenEvent;
 import pl.ogochi.rate_classes_server.security.UserPrincipal;
 import pl.ogochi.rate_classes_server.util.NewUserValidator;
 
