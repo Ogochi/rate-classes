@@ -1,0 +1,28 @@
+version: 2
+jobs:
+  build_server:
+    docker:
+      - image: circleci/openjdk:8-jdk-browsers
+    steps:
+      - checkout
+      - run:
+          name: Build server and boot jar
+          command: cd server && ./gradlew bootJar
+
+  test_server:
+    docker:
+      - image: circleci/openjdk:8-jdk-browsers
+    steps:
+      - checkout
+      - run:
+          name: Run server tests
+          command: cd server && ./gradlew test
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - build_server
+      - test_server:
+          requires:
+            - build_server
