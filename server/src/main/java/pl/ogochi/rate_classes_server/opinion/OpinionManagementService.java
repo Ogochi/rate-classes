@@ -1,11 +1,10 @@
 package pl.ogochi.rate_classes_server.opinion;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import pl.ogochi.rate_classes_server.dto.AddOpinionRequest;
 import pl.ogochi.rate_classes_server.dto.OpinionListResponse;
-import pl.ogochi.rate_classes_server.exception.ClassNotFoundException;
+import pl.ogochi.rate_classes_server.exception.UniveristyClassNotFoundException;
 import pl.ogochi.rate_classes_server.exception.LecturerNotFoundException;
 import pl.ogochi.rate_classes_server.exception.NotEnoughUserOpinionsException;
 import pl.ogochi.rate_classes_server.exception.OpinionNotFoundException;
@@ -17,7 +16,6 @@ import pl.ogochi.rate_classes_server.repository.LecturerRepository;
 import pl.ogochi.rate_classes_server.repository.OpinionRepository;
 import pl.ogochi.rate_classes_server.repository.UniveristyClassRepository;
 import pl.ogochi.rate_classes_server.repository.UserRepository;
-import pl.ogochi.rate_classes_server.security.UserPrincipal;
 
 import java.util.Optional;
 
@@ -42,7 +40,7 @@ public class OpinionManagementService {
 
         Optional<UniveristyClass> universityClass = univeristyClassRepository.findById(request.getClassName());
         if (!universityClass.isPresent()) {
-            throw new ClassNotFoundException();
+            throw new UniveristyClassNotFoundException();
         }
 
         Opinion opinion = Opinion.builder()
@@ -61,7 +59,7 @@ public class OpinionManagementService {
     public OpinionListResponse getOpinionsListWithHiddenDetails(String univeristyClassName, User user) {
         Optional<UniveristyClass> universityClass = univeristyClassRepository.findById(univeristyClassName);
         if (!universityClass.isPresent()) {
-            throw new ClassNotFoundException();
+            throw new UniveristyClassNotFoundException();
         }
 
         if (opinionRepository.countByAuthorEmail(user.getEmail()) < REQUIRED_OPINIONS_COUNT_FOR_OPINIONS_LOOKUP) {

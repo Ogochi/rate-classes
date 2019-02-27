@@ -1,5 +1,7 @@
 package pl.ogochi.rate_classes_server.dto;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
 
 import javax.validation.constraints.Max;
@@ -7,7 +9,8 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
-@Getter
+@Data
+@AllArgsConstructor
 public class AddOpinionRequest {
     @NotBlank
     String className;
@@ -21,4 +24,6 @@ public class AddOpinionRequest {
 
     @NotBlank
     String text;
+
+    public AddOpinionRequest() {}
 }
